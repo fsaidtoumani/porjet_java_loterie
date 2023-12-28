@@ -1,8 +1,10 @@
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 
 public class Transaction {
     private static String id=null;
+    public List<Block> chain;
 
 
     private static String getlasthash(){
@@ -31,5 +33,13 @@ public class Transaction {
         id=hexString.toString();
         return  getlasthash();
     }
+
+    public static void vendreBillet (String type,Integer numero, Joueur joueur, Blockchain blockchain) {
+        Billet billet = new Billet(numero, type);
+        joueur.addBillet(billet);
+        //On ajoute le billet à la blockchain
+        blockchain.addBlock(billet.toString()+" "+joueur.toString()); 
+    }
+
 
 }

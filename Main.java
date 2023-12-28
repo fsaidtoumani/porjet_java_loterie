@@ -19,18 +19,18 @@ public class Main {
 
 
     public static void main(String[] args) {
-        Blockchain blockchain = new Blockchain();
+        Joueur joueur1 = new Joueur("Joueur 1", "Normal");
+        Joueur joueur2 = new Joueur("Joueur 2", "Normal");
 
-        blockchain.addEventListener(new AutreEventListener() {
-            @Override
-            public void actionADeclancher(AutreEvent evt) {
-                Block block = (Block) evt.getDonnee();
-                System.out.println("Nouveau bloc ajouté : " + block.data);
-            }
-        });
-
-        blockchain.addBlock("Anne vend un tableau de Van Gogh");
-        blockchain.addBlock("Jean achète un vélo");
+        Serveur serveur = new Serveur(100, 5, 3, 100);
+        serveur.start();
+        serveur.acheterBillettype1(3, joueur1);
+        serveur.acheterBillettype2(-5, joueur2);
         
+        while (serveur.getStaut() == "En cours") {
+            
+        }
+        serveur.acheterBillettype2(155, joueur2);
+        System.out.println("Fin programme");
     }
 }

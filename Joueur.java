@@ -29,6 +29,16 @@ public class Joueur {
     public void addBillet(Billet billet) {
      this.billets.add(billet);
     }
-    
+    public String toString() {
+        return "Joueur{" +
+                "nom='" + nom + '}';
+    }
 
+    public void reflexion(Serveur serveur){
+        /*
+         * Un joueur inteligent va achter des billets de type 1 et 2
+         * pour augmenter ses chances de gagner grace au billet de type 2 où il peut choisir le numero
+         * 
+         */
+    }
 }

@@ -23,10 +23,11 @@ public class Billet {
     public String getType() {
         return type;
     }
-
-    /*
-     * TODO: Implementer un algo de hashage pour le nid type bloc chain
-     * 
-     */
-    
+    public String toString() {
+        return "Billet{" +
+                "nid='" + nid + '\'' +
+                ", numero=" + numero +
+                ", type='" + type + '\'' +
+                '}';
+    }
 }
