@@ -7,6 +7,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.Scanner;
 
 public class Joueur extends Thread implements Observer {
     private final LoterieServer serveur;
@@ -26,11 +27,10 @@ public class Joueur extends Thread implements Observer {
 
     @Override
     public void run() {
-        if(categorieJ.equals("Bete")){
-            jouerBetement();
-        } else if (categorieJ.equals("IntelliJ")) {
-            jouerIntelligemment();
-
+        switch (categorieJ) {
+            case "Bete" -> jouerBetement();
+            case "IntelliJ" -> jouerIntelligemment();
+            case "moimeme" -> jouermoimeme();
         }
     }
 
@@ -95,7 +95,6 @@ public class Joueur extends Thread implements Observer {
     public void jouerIntelligemment(){
 
         int nombreDeBilletsAcheter = getServeur().getNombreDeBilletsPourGagner();
-        System.out.println("Flag"+nombreDeBilletsAcheter);
         while (nombreDeBilletsAcheter > 0) {
 
 
@@ -148,5 +147,54 @@ public class Joueur extends Thread implements Observer {
                 System.out.println(getName()+" Yupiii j'ai gagner avec le billet "+ billet);
             }
         }
+    }
+
+    public void jouermoimeme(){
+
+        boolean reponse = true;
+        while (reponse && serveur.isAlive()) {
+
+
+            List<Integer> numerosbilletsajouer = new ArrayList<>();
+
+            //On demande au joueur de saisir les numeros
+            System.out.println("Veuillez saisir les numeros du billet");
+            for (int i = 0; i < serveur.getK(); i++) {
+                System.out.println("Veuillez saisir le numero " + (i + 1) + " :");
+                numerosbilletsajouer.add(new Scanner(System.in).nextInt());
+                while (numerosbilletsajouer.get(i) < 1 || numerosbilletsajouer.get(i) > serveur.getN()) {
+                    System.out.println("Veuillez saisir un numero entre 1 et " + serveur.getN());
+                    numerosbilletsajouer.set(i, new Scanner(System.in).nextInt());
+                }
+            }
+            Observable<Billet> achatObservable = getServeur().vendreBillet(numerosbilletsajouer, this);
+            Disposable disposable = achatObservable.subscribe(
+                    billet -> {
+                        billetsAchetes.add(billet);
+                    },
+                    erreur -> {
+                        if (erreur instanceof VenteFermeeException) {
+
+                            interrupt();
+
+                        } else {
+                            System.err.println(getName() + " : Erreur lors de l'achat du billet : " + erreur.getMessage());
+                        }
+                    }
+            );
+            try {
+                Thread.sleep(100); // Délai entre les tentatives d'achat
+            } catch (InterruptedException e) {
+                interrupt();
+            }
+            System.out.println("Voulez vous continuer a jouer ? (o/n)");
+            String rep = new Scanner(System.in).nextLine();
+            if (rep.equals("n")) {
+                reponse = false;
+            }
+
+        }
+
+
     }
 }
