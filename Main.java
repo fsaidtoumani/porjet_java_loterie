@@ -1,5 +1,7 @@
 package org.example;
 
+import javax.swing.*;
+
 public class Main {
     public static void main(String[] args) {
         int n = 90;
@@ -9,6 +11,8 @@ public class Main {
 
         LoterieServer serveur = new LoterieServer(n,k,t,duration*1000);
         serveur.start();
+
+        //SwingUtilities.invokeLater(() -> new ServerGUI(serveur));
 
         Joueur joueur1 = new Joueur("Alice", serveur,"Bete");
         Joueur joueur2 = new Joueur("Bob", serveur,"Bete");
@@ -20,7 +24,6 @@ public class Main {
         joueur2.start();
         joueur3.start();
         joueur4.start();
-
 
         try {
             serveur.join();

@@ -71,7 +71,7 @@ public class Joueur extends Thread implements Observer {
                         //System.out.println(getName() + " a acheté un billet: " + billet);
                     },
                     erreur -> {
-                        if (erreur instanceof VenteFermeeException) {
+                        if (erreur instanceof VenteFermeeException || erreur instanceof Exception) {
 
                             interrupt();
 
@@ -107,7 +107,7 @@ public class Joueur extends Thread implements Observer {
                         billetsAchetes.add(billet);
                     },
                     erreur -> {
-                        if (erreur instanceof VenteFermeeException) {
+                        if (erreur instanceof VenteFermeeException || erreur instanceof Exception ) {
 
                             interrupt();
 
@@ -167,13 +167,14 @@ public class Joueur extends Thread implements Observer {
                     numerosbilletsajouer.set(i, new Scanner(System.in).nextInt());
                 }
             }
+
             Observable<Billet> achatObservable = getServeur().vendreBillet(numerosbilletsajouer, this);
             Disposable disposable = achatObservable.subscribe(
                     billet -> {
                         billetsAchetes.add(billet);
                     },
                     erreur -> {
-                        if (erreur instanceof VenteFermeeException) {
+                        if (erreur instanceof VenteFermeeException || erreur instanceof Exception) {
 
                             interrupt();
 
@@ -186,6 +187,9 @@ public class Joueur extends Thread implements Observer {
                 Thread.sleep(100); // Délai entre les tentatives d'achat
             } catch (InterruptedException e) {
                 interrupt();
+            }
+            if(!serveur.isAlive()){
+                return;
             }
             System.out.println("Voulez vous continuer a jouer ? (o/n)");
             String rep = new Scanner(System.in).nextLine();

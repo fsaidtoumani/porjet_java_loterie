@@ -6,14 +6,13 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 public class GestionnaireBillets {
-    private List<Billet> billetsEnregistres;
+
     private int n; // Nombre total de numéros possibles
     private int k; // Nombre de numéros sur un billet
 
     private int t; // Nombre minimum de numéros gagnants pour gagner
 
     public GestionnaireBillets(int n, int k, int t) {
-        this.billetsEnregistres = new ArrayList<>();
         this.n = n;
         this.k = k;
         this.t = t;
@@ -31,14 +30,12 @@ public class GestionnaireBillets {
     public Billet creerBillet() {
         List<Integer> numeros = genererNumerosAleatoires();
         Billet nouveauBillet = new Billet(numeros, Categorie.CATEGORIE_I);
-        billetsEnregistres.add(nouveauBillet);
         saveTicketToDisk(nouveauBillet);
         return nouveauBillet;
     }
 
     public Billet creerBillet(List<Integer> numeros) {
         Billet nouveauBillet = new Billet(numeros, Categorie.CATEGORIE_II);
-        billetsEnregistres.add(nouveauBillet);
         saveTicketToDisk(nouveauBillet);
         return nouveauBillet;
     }

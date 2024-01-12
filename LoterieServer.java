@@ -1,6 +1,7 @@
 package org.example;
 
 import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import java.io.File;
 import java.util.*;
@@ -29,18 +30,17 @@ public class LoterieServer extends Thread implements org.example.Observable {
     }
 
     private boolean venteOuverte;
-    private ScheduledExecutorService scheduler;
-    private ExecutorService threadPool;
+
+    public long getRemainingTime() {
+        return duration;
+    }
 
     private ArrayList<Observer> observers;
 
-    private long TEMPS_ACHAT_UN_BILLET = 1000; // 1000ms
     private final int nombreDeBilletsPourGagner;
-    private long tempsAchatBilletsPourGagner;
+
 
     private final Object lock = new Object(); // Un objet de verrouillage
-
-    private Map<Joueur, Integer> billetsParJoueur; // Suivi des achats de billets par joueur
 
 
     private int synctest;
@@ -56,44 +56,41 @@ public class LoterieServer extends Thread implements org.example.Observable {
         this.venteOuverte = false;
 
         this.observers = new ArrayList<>();
-        this.threadPool = Executors.newFixedThreadPool(10);
-        this.scheduler = Executors.newScheduledThreadPool(1);
+
 
         this.nombreDeBilletsPourGagner = Verificationjeu.verificationIntelligent(n, k, t);
-        this.tempsAchatBilletsPourGagner = CalculProbabilite.calculerTempsAchatBillets(n, k, t, TEMPS_ACHAT_UN_BILLET);
+
         this.duration = duration;
-
-        this.billetsParJoueur = new ConcurrentHashMap<>();
-
 
     }
 
     public Observable<Billet> vendreBillet(Joueur joueur) {  // methode vendre Billet synchro !
-        return Observable.create(emitter -> {
-            synchronized (lock) {
-                if (!venteOuverte) {
-                    emitter.onError(new VenteFermeeException("La vente de billets est fermée."));
-                } else {
-                    try {
-                        synctest++; // Incrément synchronisé
-                        Billet billet = gestionnaireBillets.creerBillet();
-                        emitter.onNext(billet);
-                        emitter.onComplete();
-                    } catch (Exception e) {
-                        emitter.onError(e);
+        return Observable.<Billet>create(emitter -> {
+                synchronized (lock) {
+                    if (!venteOuverte) {
+                        emitter.onError(new VenteFermeeException("La vente de billets est fermée."));
+                    } else {
+                        try {
+
+                            synctest++; // Incrément synchronisé
+                            Billet billet = gestionnaireBillets.creerBillet();
+                            emitter.onNext(billet);
+                            emitter.onComplete();
+                        } catch (Exception e) {
+                            emitter.onError(e);
+                        }
                     }
                 }
-            }
-        });
+        }).subscribeOn(Schedulers.newThread()); // Souscription sur un nouveau thread
     }
 
-    public Observable<Billet> vendreBillet(List<Integer> numeros,Joueur joueur) {
-        return Observable.create(emitter -> {
+    public Observable<Billet> vendreBillet(List<Integer> numeros, Joueur joueur) {
+        // Création de l'Observable avec un type spécifié
+        return Observable.<Billet>create(emitter -> {
             synchronized (lock) {
-                if ( Verificationjeu.joueurLegit(this,joueur) && !venteOuverte) {
+                if (!Verificationjeu.joueurLegit(this, joueur) || !venteOuverte) {
                     emitter.onError(new VenteFermeeException("La vente de billets est fermée."));
-                }
-                else {
+                } else {
                     try {
                         Billet billet = gestionnaireBillets.creerBillet(numeros);
                         emitter.onNext(billet);
@@ -103,18 +100,8 @@ public class LoterieServer extends Thread implements org.example.Observable {
                     }
                 }
             }
-        });
+        }).subscribeOn(Schedulers.newThread()); // Souscription sur un nouveau thread
     }
-
-    private void attendreTraitement() {
-        try {
-            Thread.sleep(1000); // Simuler un délai pour le traitement
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Interruption pendant l'attente du traitement", e);
-        }
-    }
-
 
     private void clearCash() {
         File repertoireTickets = new File("tickets");
@@ -169,7 +156,6 @@ public class LoterieServer extends Thread implements org.example.Observable {
             while (this.duration >=0 && Verificationjeu.etatlegit){
                 this.duration-=1000;
                 Thread.sleep(1000);
-                System.out.println(this.duration);
             }
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
